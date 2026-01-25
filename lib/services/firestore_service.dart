@@ -40,6 +40,16 @@ class FirestoreService {
     }
   }
 
+  Future<void> deleteDailyFocus(String userId) async {
+    try {
+      final dateKey = _formatDate(DateTime.now());
+      await _db.collection('users').doc(userId).collection('focuses').doc(dateKey).delete();
+    } catch (e) {
+      log('FIRESTORE: Error deleting focus: $e');
+      rethrow;
+    }
+  }
+
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
