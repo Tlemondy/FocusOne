@@ -28,13 +28,13 @@ class HomePage extends ConsumerWidget {
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.only(left: 24, right: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildHeader(userName),
+                        _buildHeader(userName, ref),
                         const SizedBox(height: 40),
-                        _buildTodaysFocus(context, dailyFocusAsync),
+                        _buildTodaysFocus(context, ref, dailyFocusAsync),
                         const Spacer(),
                         _buildQuickActions(),
                         const SizedBox(height: 24),
@@ -50,17 +50,33 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(String userName) {
+  Widget _buildHeader(String userName, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Hello, $userName',
-          style: TextStyle(
-            fontSize: 16,
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w400,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'Hello, $userName',
+              style: TextStyle(
+                fontSize: 16,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            IconButton(
+              onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
+              icon: Icon(
+                Icons.logout_rounded,
+                color: AppColors.textSecondary,
+                size: 28,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         ShaderMask(
@@ -79,11 +95,11 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildTodaysFocus(BuildContext context, AsyncValue<DailyFocus?> focusAsync) {
+  Widget _buildTodaysFocus(BuildContext context, WidgetRef ref, AsyncValue<DailyFocus?> focusAsync) {
     final focus = focusAsync.value;
     return GlassContainer(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
@@ -113,7 +129,7 @@ class HomePage extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 24),
-          if (focus == null) ..._buildEmptyState(context) else ..._buildFocusContent(focus),
+          if (focus == null) ..._buildEmptyState(context) else ..._buildFocusContent(context, ref, focus),
         ],
       ),
     );
@@ -180,15 +196,16 @@ class HomePage extends ConsumerWidget {
     ];
   }
 
-  List<Widget> _buildFocusContent(DailyFocus focus) {
+  List<Widget> _buildFocusContent(BuildContext context, WidgetRef ref, DailyFocus focus) {
     return [
       Container(
+        width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppColors.primary.withValues(alpha: 0.1),
-              AppColors.secondary.withValues(alpha: 0.1),
+              AppColors.primary.withValues(alpha: 0.12),
+              AppColors.secondary.withValues(alpha: 0.12),
             ],
           ),
           borderRadius: BorderRadius.circular(16),
@@ -199,31 +216,40 @@ class HomePage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'YOUR FOCUS',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.white70,
-                letterSpacing: 1,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              focus.title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    focus.title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => _showDeleteConfirmation(context, ref),
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: Colors.white.withValues(alpha: 0.5),
+                    size: 22,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
             ),
             if (focus.reason != null) ...[
               const SizedBox(height: 12),
               Text(
                 focus.reason!,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 15,
                   color: AppColors.textSecondary,
+                  height: 1.5,
                 ),
               ),
             ],
@@ -253,6 +279,43 @@ class HomePage extends ConsumerWidget {
         ),
       ),
     ];
+  }
+
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Delete Focus?',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        content: Text(
+          'Are you sure you want to delete today\'s focus?',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(dailyFocusProvider.notifier).deleteFocus();
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSetFocusModal(BuildContext context) {

@@ -49,4 +49,18 @@ class DailyFocusNotifier extends AsyncNotifier<DailyFocus?> {
       log('FOCUS: Error saving to Firestore: $e');
     }
   }
+
+  Future<void> deleteFocus() async {
+    final authState = await ref.read(authStateProvider.future);
+    if (authState == null) return;
+
+    state = const AsyncValue.data(null);
+    
+    try {
+      final service = ref.read(firestoreServiceProvider);
+      await service.deleteDailyFocus(authState.uid);
+    } catch (e) {
+      log('FOCUS: Error deleting from Firestore: $e');
+    }
+  }
 }
