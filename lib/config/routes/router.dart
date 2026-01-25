@@ -6,10 +6,27 @@ import '../../pages/home/home_page.dart';
 import '../../pages/login/login_page.dart';
 import '../../pages/register/register_page.dart';
 import '../../pages/profile/profile_page.dart';
+import '../../providers/auth_provider.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authStateProvider);
+
   return GoRouter(
     initialLocation: '/login',
+    redirect: (context, state) {
+      final isLoggedIn = authState.value != null;
+      final isLoggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+
+      if (!isLoggedIn && !isLoggingIn) {
+        return '/login';
+      }
+
+      if (isLoggedIn && isLoggingIn) {
+        return '/';
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/login',

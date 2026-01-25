@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/glass_container.dart';
 import '../../components/fade_in_animation.dart';
 import '../../components/custom_text_field.dart';
 import '../../components/gradient_button.dart';
+import '../../providers/auth_provider.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
@@ -133,6 +135,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildLoginForm() {
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState.isLoading;
+
     return GlassContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,8 +183,8 @@ class _LoginPageState extends State<LoginPage> {
           ),
           const SizedBox(height: 32),
           GradientButton(
-            text: 'Sign In',
-            onTap: () {},
+            text: isLoading ? 'Signing In...' : 'Sign In',
+            onTap: isLoading ? () {} : _handleSignIn,
           ),
           const SizedBox(height: 20),
           Center(
@@ -234,6 +239,35 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _handleSignIn() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showError('Please fill in all fields');
+      return;
+    }
+
+    await ref.read(authControllerProvider.notifier).signIn(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    final authState = ref.read(authControllerProvider);
+
+    authState.whenOrNull(
+      error: (error, _) => _showError(error.toString()),
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
     );
   }
 }
