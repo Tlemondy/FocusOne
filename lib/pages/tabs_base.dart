@@ -49,7 +49,7 @@ class _TabsBaseState extends ConsumerState<TabsBase> {
               ],
               currentIndex: tabIndex,
               backgroundColor: Theme.of(context).colorScheme.onSecondary,
-              onTap: (index) => ref.read(tabsProvider.notifier).state = index,
+              onTap: (index) => ref.read(tabsProvider.notifier).setTab(index),
               selectedItemColor: Theme.of(context).colorScheme.onSurface,
               unselectedItemColor: Theme.of(context).colorScheme.secondary,
             ),
@@ -85,7 +85,7 @@ class _TabsBaseState extends ConsumerState<TabsBase> {
                       ],
                       selectedIndex: tabIndex,
                       onDestinationSelected: (index) {
-                        ref.read(tabsProvider.notifier).state = index;
+                        ref.read(tabsProvider.notifier).setTab(index);
                       },
                     ),
                   ),

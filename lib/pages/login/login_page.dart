@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -62,8 +61,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      AppColors.primary.withOpacity(0.3),
-                      AppColors.primary.withOpacity(0),
+                      AppColors.primary.withValues(alpha: 0.3),
+                      AppColors.primary.withValues(alpha: 0),
                     ],
                   ),
                 ),
@@ -79,8 +78,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      AppColors.secondary.withOpacity(0.3),
-                      AppColors.secondary.withOpacity(0),
+                      AppColors.secondary.withValues(alpha: 0.3),
+                      AppColors.secondary.withValues(alpha: 0),
                     ],
                   ),
                 ),
@@ -225,10 +224,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -266,7 +265,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.4),
+            color: AppColors.primary.withValues(alpha: 0.4),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
