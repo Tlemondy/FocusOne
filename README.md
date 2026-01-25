@@ -1,4 +1,4 @@
-# Focus One
+## Focus One
 
 Focus One is a minimal daily focus app built with Flutter. The goal of the app is simple: help users choose one meaningful priority per day, work on it in focused sessions, and reflect at the end of the day.
 
