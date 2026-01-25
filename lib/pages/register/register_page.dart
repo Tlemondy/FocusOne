@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/glass_container.dart';
 import '../../components/fade_in_animation.dart';
 import '../../components/custom_text_field.dart';
 import '../../components/gradient_button.dart';
+import '../../providers/auth_provider.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -150,6 +152,9 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget _buildRegisterForm() {
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState.isLoading;
+
     return GlassContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,8 +221,8 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
           const SizedBox(height: 32),
           GradientButton(
-            text: 'Create Account',
-            onTap: () {},
+            text: isLoading ? 'Creating Account...' : 'Create Account',
+            onTap: isLoading ? () {} : _handleSignUp,
           ),
         ],
       ),
@@ -255,6 +260,49 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _handleSignUp() async {
+    if (_nameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
+      _showError('Please fill in all fields');
+      return;
+    }
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      _showError('Passwords do not match');
+      return;
+    }
+
+    if (_passwordController.text.length < 6) {
+      _showError('Password must be at least 6 characters');
+      return;
+    }
+
+    await ref.read(authControllerProvider.notifier).signUp(
+      _emailController.text.trim(),
+      _passwordController.text,
+      _nameController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    final authState = ref.read(authControllerProvider);
+
+    authState.whenOrNull(
+      error: (error, _) => _showError(error.toString()),
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
     );
   }
 }
