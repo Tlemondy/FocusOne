@@ -6,6 +6,11 @@ import '../../pages/home/home_page.dart';
 import '../../pages/login/login_page.dart';
 import '../../pages/register/register_page.dart';
 import '../../pages/profile/profile_page.dart';
+import '../../pages/history/history_page.dart';
+import '../../pages/history/focus_detail_page.dart';
+import '../../pages/history/note_viewer_page.dart';
+import '../../pages/insights/insights_page.dart';
+import '../../pages/focus_session/focus_session_page.dart';
 import '../../providers/auth_provider.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -59,6 +64,83 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: 'profile',
             name: 'profile',
             builder: (context, state) => const ProfilePage(),
+          ),
+          GoRoute(
+            path: 'history',
+            name: 'history',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const HistoryPage(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+            ),
+          ),
+          GoRoute(
+            path: 'focus-detail/:dateId',
+            name: 'focus-detail',
+            pageBuilder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>;
+              return CustomTransitionPage(
+                key: state.pageKey,
+                child: FocusDetailPage(
+                  dateId: state.pathParameters['dateId']!,
+                  title: extra['title'],
+                  reason: extra['reason'],
+                  date: extra['date'],
+                ),
+                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+              );
+            },
+          ),
+          GoRoute(
+            path: 'focus-session',
+            name: 'focus-session',
+            pageBuilder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>;
+              return CustomTransitionPage(
+                key: state.pageKey,
+                child: FocusSessionPage(
+                  focusTitle: extra['title'],
+                  focusReason: extra['reason'],
+                  focusDateId: extra['dateId'],
+                ),
+                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+              );
+            },
+          ),
+          GoRoute(
+            path: 'note-viewer',
+            name: 'note-viewer',
+            pageBuilder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>;
+              return CustomTransitionPage(
+                key: state.pageKey,
+                child: NoteViewerPage(
+                  note: extra['note'],
+                  sessionId: extra['sessionId'],
+                  focusDateId: extra['focusDateId'],
+                ),
+                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+              );
+            },
+          ),
+          GoRoute(
+            path: 'insights',
+            name: 'insights',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const InsightsPage(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+            ),
           ),
         ],
       ),

@@ -1,1 +1,40 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"focus-one-dfaf6","appId":"1:366310860834:android:a9f602cc287144b7e9c27b","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"focus-one-dfaf6","appId":"1:366310860834:ios:4d15371af4d8adc0e9c27b","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"focus-one-dfaf6","appId":"1:366310860834:ios:4d15371af4d8adc0e9c27b","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"focus-one-dfaf6","configurations":{"ios":"1:366310860834:ios:4d15371af4d8adc0e9c27b"}}}}}}
+{
+  "firestore": {
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "focus-one-dfaf6",
+          "appId": "1:366310860834:android:a9f602cc287144b7e9c27b",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "focus-one-dfaf6",
+          "appId": "1:366310860834:ios:4d15371af4d8adc0e9c27b",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "focus-one-dfaf6",
+          "appId": "1:366310860834:ios:4d15371af4d8adc0e9c27b",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "focus-one-dfaf6",
+          "configurations": {
+            "ios": "1:366310860834:ios:4d15371af4d8adc0e9c27b"
+          }
+        }
+      }
+    }
+  }
+}
