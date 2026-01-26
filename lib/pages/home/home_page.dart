@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/glass_container.dart';
 import '../../components/fade_in_animation.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/focus_provider.dart';
+import '../../providers/insights_provider.dart';
 import 'components/set_focus_modal.dart';
 
 class HomePage extends ConsumerWidget {
@@ -33,10 +35,12 @@ class HomePage extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildHeader(userName, ref),
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 20),
                         _buildTodaysFocus(context, ref, dailyFocusAsync),
+                        const SizedBox(height: 16),
+                        _buildStreakCard(ref),
                         const Spacer(),
-                        _buildQuickActions(),
+                        _buildQuickActions(context),
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -260,7 +264,7 @@ class HomePage extends ConsumerWidget {
       SizedBox(
         width: double.infinity,
         child: TextButton(
-          onPressed: () {},
+          onPressed: () => _navigateToSession(context, focus),
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
             backgroundColor: Colors.white.withValues(alpha: 0.05),
@@ -279,6 +283,14 @@ class HomePage extends ConsumerWidget {
         ),
       ),
     ];
+  }
+
+  void _navigateToSession(BuildContext context, DailyFocus focus) {
+    context.push('/focus-session', extra: {
+      'title': focus.title,
+      'reason': focus.reason,
+      'dateId': focus.id,
+    });
   }
 
   void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
@@ -327,22 +339,109 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildStreakCard(WidgetRef ref) {
+    final insightsAsync = ref.watch(insightsProvider);
+    
+    return insightsAsync.when(
+      data: (insights) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.orange.shade400.withValues(alpha: 0.2),
+              Colors.red.shade600.withValues(alpha: 0.2),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.orange.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.orange.shade400, Colors.red.shade600],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.local_fire_department_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Focus Streak',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${insights.focusStreak}',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          height: 1,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(
+                          insights.focusStreak == 1 ? 'day' : 'days',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: _buildActionCard(
             icon: Icons.history_rounded,
             label: 'History',
-            onTap: () {},
+            onTap: () => context.push('/history'),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: _buildActionCard(
-            icon: Icons.person_outline_rounded,
-            label: 'Profile',
-            onTap: () {},
+            icon: Icons.insights_rounded,
+            label: 'Insights',
+            onTap: () => context.push('/insights'),
           ),
         ),
       ],
