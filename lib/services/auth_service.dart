@@ -44,4 +44,34 @@ class AuthService {
       rethrow;
     }
   }
+
+  Future<void> updateDisplayName(String name) async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await user.updateDisplayName(name);
+        await user.reload();
+        debugPrint('AUTH SERVICE: Display name updated to: $name');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('AUTH SERVICE: Update display name error: $e');
+      debugPrint('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
+
+  Future<void> updatePhotoURL(String photoURL) async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await user.updatePhotoURL(photoURL);
+        await user.reload();
+        debugPrint('AUTH SERVICE: Photo URL updated');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('AUTH SERVICE: Update photo URL error: $e');
+      debugPrint('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
 }
