@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../pages/home/home_page.dart';
+import '../../pages/tabs_base.dart';
 import '../../pages/login/login_page.dart';
 import '../../pages/register/register_page.dart';
-import '../../pages/profile/profile_page.dart';
-import '../../pages/history/history_page.dart';
 import '../../pages/history/focus_detail_page.dart';
 import '../../pages/history/note_viewer_page.dart';
-import '../../pages/insights/insights_page.dart';
 import '../../pages/focus_session/focus_session_page.dart';
+import '../../pages/settings/settings_page.dart';
+import '../../pages/friends/qr_scanner_page.dart';
 import '../../providers/auth_provider.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -58,24 +57,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         name: 'home',
-        builder: (context, state) => const HomePage(),
+        builder: (context, state) => const TabsBase(),
         routes: [
-          GoRoute(
-            path: 'profile',
-            name: 'profile',
-            builder: (context, state) => const ProfilePage(),
-          ),
-          GoRoute(
-            path: 'history',
-            name: 'history',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: const HistoryPage(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-            ),
-          ),
           GoRoute(
             path: 'focus-detail/:dateId',
             name: 'focus-detail',
@@ -136,7 +119,36 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             name: 'insights',
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
-              child: const InsightsPage(),
+              child: const TabsBase(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+            ),
+          ),
+          GoRoute(
+            path: 'settings',
+            name: 'settings',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const SettingsPage(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                const begin = Offset(1.0, 0.0);
+                const end = Offset.zero;
+                const curve = Curves.easeInOut;
+                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: child,
+                );
+              },
+            ),
+          ),
+          GoRoute(
+            path: 'qr-scanner',
+            name: 'qr-scanner',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const QRScannerPage(),
               transitionsBuilder: (context, animation, secondaryAnimation, child) {
                 return FadeTransition(opacity: animation, child: child);
               },
