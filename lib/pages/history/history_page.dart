@@ -5,6 +5,7 @@ import 'package:focus_one/providers/focus_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/glass_container.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/page_header.dart';
 
 final completedFocusesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final authState = await ref.watch(authStateProvider.future);
@@ -23,21 +24,31 @@ class HistoryPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      extendBodyBehindAppBar: true,
       body: Container(
         decoration: BoxDecoration(gradient: AppColors.backgroundGradient),
-        child: SafeArea(
-          child: Column(
+        child: focusesAsync.when(
+          data: (focuses) => focuses.isEmpty
+              ? Column(
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).padding.top),
+                    const PageHeader(title: 'History', showBackButton: false),
+                    Expanded(child: _buildEmptyState()),
+                  ],
+                )
+              : _buildHistoryList(context, focuses),
+          loading: () => Column(
             children: [
-              _buildHeader(context),
-              Expanded(
-                child: focusesAsync.when(
-                  data: (focuses) => focuses.isEmpty
-                      ? _buildEmptyState()
-                      : _buildFocusList(context, focuses),
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(child: Text('Error: $e')),
-                ),
-              ),
+              SizedBox(height: MediaQuery.of(context).padding.top),
+              const PageHeader(title: 'History', showBackButton: false),
+              const Expanded(child: Center(child: CircularProgressIndicator())),
+            ],
+          ),
+          error: (e, _) => Column(
+            children: [
+              SizedBox(height: MediaQuery.of(context).padding.top),
+              const PageHeader(title: 'History', showBackButton: false),
+              Expanded(child: Center(child: Text('Error: $e'))),
             ],
           ),
         ),
@@ -45,30 +56,40 @@ class HistoryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          ),
-          const SizedBox(width: 8),
-          ShaderMask(
-            shaderCallback: (bounds) => AppColors.primaryGradient.createShader(bounds),
-            child: const Text(
-              'History',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                letterSpacing: -0.5,
-              ),
+  Widget _buildHistoryList(BuildContext context, List<Map<String, dynamic>> focuses) {
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 104,
+          floating: false,
+          pinned: false,
+          snap: false,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          flexibleSpace: FlexibleSpaceBar(
+            background: Padding(
+              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+              child: const PageHeader(title: 'History', showBackButton: false),
             ),
           ),
-        ],
-      ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildFocusCard(context, focuses[index]),
+              ),
+              childCount: focuses.length,
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 100),
+        ),
+      ],
     );
   }
 
@@ -101,21 +122,7 @@ class HistoryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildFocusList(BuildContext context, List<Map<String, dynamic>> focuses) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      itemCount: focuses.length,
-      itemBuilder: (context, index) {
-        final focus = focuses[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: _buildFocusCard(context, focus),
-        );
-      },
-    );
-  }
-
-  Widget _buildFocusCard(BuildContext context, Map<String, dynamic> focus) {
+Widget _buildFocusCard(BuildContext context, Map<String, dynamic> focus) {
     final date = (focus['date'] as dynamic).toDate() as DateTime;
     final dateStr = '${_monthName(date.month)} ${date.day}, ${date.year}';
 
@@ -126,7 +133,7 @@ class HistoryPage extends ConsumerWidget {
         'date': date,
       }),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -136,7 +143,7 @@ class HistoryPage extends ConsumerWidget {
               AppColors.secondary.withValues(alpha: 0.15),
             ],
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: AppColors.primary.withValues(alpha: 0.3),
             width: 1.5,

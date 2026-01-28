@@ -34,14 +34,13 @@ class HomePage extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildHeader(userName, ref),
+                        _buildHeader(userName, ref, context),
                         const SizedBox(height: 20),
                         _buildTodaysFocus(context, ref, dailyFocusAsync),
                         const SizedBox(height: 16),
                         _buildStreakCard(ref),
                         const Spacer(),
-                        _buildQuickActions(context),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 100),
                       ],
                     ),
                   ),
@@ -54,7 +53,7 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(String userName, WidgetRef ref) {
+  Widget _buildHeader(String userName, WidgetRef ref, BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -71,9 +70,9 @@ class HomePage extends ConsumerWidget {
               ),
             ),
             IconButton(
-              onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
+              onPressed: () => context.push('/settings'),
               icon: Icon(
-                Icons.logout_rounded,
+                Icons.settings_rounded,
                 color: AppColors.textSecondary,
                 size: 28,
               ),
@@ -423,60 +422,6 @@ class HomePage extends ConsumerWidget {
       ),
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
-    );
-  }
-
-  Widget _buildQuickActions(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildActionCard(
-            icon: Icons.history_rounded,
-            label: 'History',
-            onTap: () => context.push('/history'),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildActionCard(
-            icon: Icons.insights_rounded,
-            label: 'Insights',
-            onTap: () => context.push('/insights'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionCard({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return GlassContainer(
-      padding: const EdgeInsets.all(20),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: Colors.white,
-              size: 28,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

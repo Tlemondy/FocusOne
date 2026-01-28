@@ -51,4 +51,16 @@ class AuthController extends Notifier<AsyncValue<void>> {
       debugPrint('AUTH: Sign out failed: ${state.error}');
     }
   }
+
+  Future<void> updateDisplayName(String name) async {
+    debugPrint('AUTH: Updating display name to: $name');
+    final authService = ref.read(authServiceProvider);
+    await authService.updateDisplayName(name);
+  }
+
+  Future<void> updatePhotoURL(String photoURL) async {
+    debugPrint('AUTH: Updating photo URL');
+    final authService = ref.read(authServiceProvider);
+    await authService.updatePhotoURL(photoURL);
+  }
 }

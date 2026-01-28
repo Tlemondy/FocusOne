@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../providers/insights_provider.dart';
+import '../../widgets/page_header.dart';
 
 class InsightsPage extends ConsumerWidget {
   const InsightsPage({super.key});
@@ -13,19 +14,23 @@ class InsightsPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      extendBodyBehindAppBar: true,
       body: Container(
         decoration: BoxDecoration(gradient: AppColors.backgroundGradient),
-        child: SafeArea(
-          child: Column(
+        child: insightsAsync.when(
+          data: (insights) => _buildInsights(context, insights),
+          loading: () => Column(
             children: [
-              _buildHeader(context),
-              Expanded(
-                child: insightsAsync.when(
-                  data: (insights) => _buildInsights(insights),
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(child: Text('Error: $e')),
-                ),
-              ),
+              SizedBox(height: MediaQuery.of(context).padding.top),
+              const PageHeader(title: 'Insights', showBackButton: false),
+              const Expanded(child: Center(child: CircularProgressIndicator())),
+            ],
+          ),
+          error: (e, _) => Column(
+            children: [
+              SizedBox(height: MediaQuery.of(context).padding.top),
+              const PageHeader(title: 'Insights', showBackButton: false),
+              Expanded(child: Center(child: Text('Error: $e'))),
             ],
           ),
         ),
@@ -33,106 +38,99 @@ class InsightsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          ),
-          const SizedBox(width: 8),
-          ShaderMask(
-            shaderCallback: (bounds) => AppColors.primaryGradient.createShader(bounds),
-            child: const Text(
-              'Insights',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                letterSpacing: -0.5,
-              ),
+  Widget _buildInsights(BuildContext context, InsightsData insights) {
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 104,
+          floating: false,
+          pinned: false,
+          snap: false,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          flexibleSpace: FlexibleSpaceBar(
+            background: Padding(
+              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+              child: const PageHeader(title: 'Insights', showBackButton: false),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInsights(InsightsData insights) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildStatCard(
-            icon: Icons.local_fire_department_rounded,
-            title: 'Focus Streak',
-            value: '${insights.focusStreak}',
-            subtitle: insights.focusStreak == 1 ? 'day' : 'days',
-            gradient: LinearGradient(
-              colors: [Colors.orange.shade400, Colors.red.shade600],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildStatCard(
-            icon: Icons.timer_outlined,
-            title: 'This Week',
-            value: '${insights.totalMinutesThisWeek}',
-            subtitle: 'minutes',
-            gradient: AppColors.primaryGradient,
-          ),
-          const SizedBox(height: 16),
-          _buildStatCard(
-            icon: Icons.star_rounded,
-            title: 'Average Rating',
-            value: insights.averageRating > 0 
-                ? insights.averageRating.toStringAsFixed(1) 
-                : '—',
-            subtitle: insights.averageRating > 0 ? 'out of 5' : 'no ratings yet',
-            gradient: LinearGradient(
-              colors: [Colors.amber.shade400, Colors.orange.shade600],
-            ),
-          ),
-          const SizedBox(height: 32),
-          const Text(
-            'All Time',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildSmallStatCard(
-                  icon: Icons.check_circle_outline_rounded,
-                  title: 'Completed',
-                  value: '${insights.completedFocuses}',
-                  gradient: LinearGradient(
-                    colors: [Colors.green.shade400, Colors.green.shade600],
-                  ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              _buildStatCard(
+                icon: Icons.local_fire_department_rounded,
+                title: 'Focus Streak',
+                value: '${insights.focusStreak}',
+                subtitle: insights.focusStreak == 1 ? 'day' : 'days',
+                gradient: LinearGradient(
+                  colors: [Colors.orange.shade400, Colors.red.shade600],
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildSmallStatCard(
-                  icon: Icons.play_circle_outline_rounded,
-                  title: 'Sessions',
-                  value: '${insights.totalSessions}',
-                  gradient: LinearGradient(
-                    colors: [Colors.purple.shade400, Colors.purple.shade600],
-                  ),
+              const SizedBox(height: 16),
+              _buildStatCard(
+                icon: Icons.timer_outlined,
+                title: 'This Week',
+                value: '${insights.totalMinutesThisWeek}',
+                subtitle: 'minutes',
+                gradient: AppColors.primaryGradient,
+              ),
+              const SizedBox(height: 16),
+              _buildStatCard(
+                icon: Icons.star_rounded,
+                title: 'Average Rating',
+                value: insights.averageRating > 0 
+                    ? insights.averageRating.toStringAsFixed(1) 
+                    : '—',
+                subtitle: insights.averageRating > 0 ? 'out of 5' : 'no ratings yet',
+                gradient: LinearGradient(
+                  colors: [Colors.amber.shade400, Colors.orange.shade600],
                 ),
               ),
-            ],
+              const SizedBox(height: 32),
+              const Text(
+                'All Time',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSmallStatCard(
+                      icon: Icons.check_circle_outline_rounded,
+                      title: 'Completed',
+                      value: '${insights.completedFocuses}',
+                      gradient: LinearGradient(
+                        colors: [Colors.green.shade400, Colors.green.shade600],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildSmallStatCard(
+                      icon: Icons.play_circle_outline_rounded,
+                      title: 'Sessions',
+                      value: '${insights.totalSessions}',
+                      gradient: LinearGradient(
+                        colors: [Colors.purple.shade400, Colors.purple.shade600],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ]),
           ),
-          const SizedBox(height: 24),
-        ],
-      ),
+        ),
+        SliverPadding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 100),
+        ),
+      ],
     );
   }
 
