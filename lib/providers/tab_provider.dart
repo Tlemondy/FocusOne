@@ -4,7 +4,7 @@ final tabsProvider = NotifierProvider<TabsNotifier, int>(TabsNotifier.new);
 
 class TabsNotifier extends Notifier<int> {
   @override
-  int build() => 0;
+  int build() => 1;
 
   void setTab(int index) => state = index;
 }
