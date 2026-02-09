@@ -36,6 +36,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/login',
         name: 'login',
         pageBuilder: (context, state) => CustomTransitionPage(
+          transitionDuration: Duration(milliseconds: 10),
           key: state.pageKey,
           child: const LoginPage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -47,6 +48,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/register',
         name: 'register',
         pageBuilder: (context, state) => CustomTransitionPage(
+          transitionDuration: Duration(milliseconds: 10),
           key: state.pageKey,
           child: const RegisterPage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
