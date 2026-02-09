@@ -92,9 +92,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                             padding: const EdgeInsets.symmetric(horizontal: 24),
                             child: Column(
                               children: [
-                                const Spacer(flex: 2),
+                                const SizedBox(height: 18),
                                 _buildHeader(),
-                                const SizedBox(height: 40),
+                                Spacer(flex: 2,),
                                 _buildRegisterForm(),
                                 const SizedBox(height: 24),
                                 _buildSignInPrompt(),

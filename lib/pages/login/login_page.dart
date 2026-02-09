@@ -57,23 +57,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               ),
             ),
-            Positioned(
-              bottom: -150,
-              left: -100,
-              child: Container(
-                width: 400,
-                height: 400,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      AppColors.secondary.withValues(alpha: 0.3),
-                      AppColors.secondary.withValues(alpha: 0),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            // Positioned(
+            //   bottom: -150,
+            //   left: -100,
+            //   child: Container(
+            //     width: 400,
+            //     height: 400,
+            //     decoration: BoxDecoration(
+            //       shape: BoxShape.circle,
+            //       gradient: RadialGradient(
+            //         colors: [
+            //           AppColors.secondary.withValues(alpha: 0.3),
+            //           AppColors.secondary.withValues(alpha: 0),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
+            // ),
             SafeArea(
               child: FadeInAnimation(
                 child: CustomScrollView(
@@ -85,9 +85,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Column(
                           children: [
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 18),
                             _buildHeader(),
-                            const SizedBox(height: 40),
+                            const Spacer(flex: 2,),
                             _buildLoginForm(),
                             const SizedBox(height: 24),
                             _buildSignUpPrompt(),
