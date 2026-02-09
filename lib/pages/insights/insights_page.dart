@@ -1,0 +1,281 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../theme/app_colors.dart';
+import '../../providers/insights_provider.dart';
+import '../../widgets/page_header.dart';
+
+class InsightsPage extends ConsumerWidget {
+  const InsightsPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final insightsAsync = ref.watch(insightsProvider);
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: BoxDecoration(gradient: AppColors.backgroundGradient),
+        child: insightsAsync.when(
+          data: (insights) => _buildInsights(context, insights),
+          loading: () => Column(
+            children: [
+              SizedBox(height: MediaQuery.of(context).padding.top),
+              const PageHeader(title: 'Insights', showBackButton: false),
+              const Expanded(child: Center(child: CircularProgressIndicator())),
+            ],
+          ),
+          error: (e, _) => Column(
+            children: [
+              SizedBox(height: MediaQuery.of(context).padding.top),
+              const PageHeader(title: 'Insights', showBackButton: false),
+              Expanded(child: Center(child: Text('Error: $e'))),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInsights(BuildContext context, InsightsData insights) {
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 104,
+          floating: false,
+          pinned: false,
+          snap: false,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          flexibleSpace: FlexibleSpaceBar(
+            background: Padding(
+              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+              child: const PageHeader(title: 'Insights', showBackButton: false),
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              _buildStatCard(
+                icon: Icons.local_fire_department_rounded,
+                title: 'Focus Streak',
+                value: '${insights.focusStreak}',
+                subtitle: insights.focusStreak == 1 ? 'day' : 'days',
+                gradient: LinearGradient(
+                  colors: [Colors.orange.shade400, Colors.red.shade600],
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildStatCard(
+                icon: Icons.timer_outlined,
+                title: 'This Week',
+                value: '${insights.totalMinutesThisWeek}',
+                subtitle: 'minutes',
+                gradient: AppColors.primaryGradient,
+              ),
+              const SizedBox(height: 16),
+              _buildStatCard(
+                icon: Icons.star_rounded,
+                title: 'Average Rating',
+                value: insights.averageRating > 0 
+                    ? insights.averageRating.toStringAsFixed(1) 
+                    : '—',
+                subtitle: insights.averageRating > 0 ? 'out of 5' : 'no ratings yet',
+                gradient: LinearGradient(
+                  colors: [Colors.amber.shade400, Colors.orange.shade600],
+                ),
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                'All Time',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSmallStatCard(
+                      icon: Icons.check_circle_outline_rounded,
+                      title: 'Completed',
+                      value: '${insights.completedFocuses}',
+                      gradient: LinearGradient(
+                        colors: [Colors.green.shade400, Colors.green.shade600],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildSmallStatCard(
+                      icon: Icons.play_circle_outline_rounded,
+                      title: 'Sessions',
+                      value: '${insights.totalSessions}',
+                      gradient: LinearGradient(
+                        colors: [Colors.purple.shade400, Colors.purple.shade600],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ]),
+          ),
+        ),
+        SliverPadding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 100),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required String subtitle,
+    required Gradient gradient,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withValues(alpha: 0.15),
+            AppColors.secondary.withValues(alpha: 0.15),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: gradient,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: Colors.white, size: 32),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSmallStatCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required Gradient gradient,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withValues(alpha: 0.15),
+            AppColors.secondary.withValues(alpha: 0.15),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: gradient,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 24),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
