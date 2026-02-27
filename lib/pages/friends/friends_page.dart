@@ -28,18 +28,19 @@ class FriendsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hasFriends = ref.watch(hasFriendsProvider);
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       extendBodyBehindAppBar: true,
       body: Container(
         decoration: BoxDecoration(gradient: AppColors.backgroundGradient),
-        child: hasFriends ? _buildFriendsList(context, ref) : _buildEmptyState(context),
+        child: hasFriends ? _buildFriendsList(context, ref, isDesktop) : _buildEmptyState(context, isDesktop),
       ),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, bool isDesktop) {
     return Column(
       children: [
         SizedBox(height: MediaQuery.of(context).padding.top),
@@ -47,7 +48,7 @@ class FriendsPage extends ConsumerWidget {
           children: [
             const Expanded(child: PageHeader(title: 'Friends', showBackButton: false)),
             Padding(
-              padding: const EdgeInsets.only(right: 24, top: 24),
+              padding: EdgeInsets.only(right: isDesktop ? 40 : 24, top: 24),
               child: IconButton(
                 onPressed: () => _scanQRCode(context),
                 icon: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 28),
@@ -56,35 +57,40 @@ class FriendsPage extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 80),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: GlassContainer(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.people_outline_rounded,
-                  size: 64,
-                  color: AppColors.textSecondary,
+        Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: isDesktop ? 900 : double.infinity),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: isDesktop ? 40 : 24),
+              child: GlassContainer(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.people_outline_rounded,
+                      size: 64,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No friends yet',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Scan a QR code to add friends',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'No friends yet',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Scan a QR code to add friends',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -92,48 +98,53 @@ class FriendsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildFriendsList(BuildContext context, WidgetRef ref) {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          expandedHeight: 104,
-          floating: false,
-          pinned: false,
-          snap: false,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Padding(
-              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-              child: Row(
-                children: [
-                  const Expanded(child: PageHeader(title: 'Friends', showBackButton: false)),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 24, top: 24),
-                    child: IconButton(
-                      onPressed: () => _scanQRCode(context),
-                      icon: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 28),
-                    ),
+  Widget _buildFriendsList(BuildContext context, WidgetRef ref, bool isDesktop) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: isDesktop ? 900 : double.infinity),
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 104,
+              floating: false,
+              pinned: false,
+              snap: false,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Padding(
+                  padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                  child: Row(
+                    children: [
+                      const Expanded(child: PageHeader(title: 'Friends', showBackButton: false)),
+                      Padding(
+                        padding: EdgeInsets.only(right: isDesktop ? 40 : 24, top: 24),
+                        child: IconButton(
+                          onPressed: () => _scanQRCode(context),
+                          icon: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 28),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: isDesktop ? 40 : 24),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  _buildSearchBar(ref),
+                  const SizedBox(height: 16),
+                ]),
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + (isDesktop ? 40 : 100)),
+            ),
+          ],
         ),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              _buildSearchBar(ref),
-              const SizedBox(height: 16),
-            ]),
-          ),
-        ),
-        SliverPadding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 100),
-        ),
-      ],
+      ),
     );
   }
 

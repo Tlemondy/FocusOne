@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../providers/insights_provider.dart';
 import '../../widgets/page_header.dart';
@@ -11,6 +10,7 @@ class InsightsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final insightsAsync = ref.watch(insightsProvider);
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -18,7 +18,7 @@ class InsightsPage extends ConsumerWidget {
       body: Container(
         decoration: BoxDecoration(gradient: AppColors.backgroundGradient),
         child: insightsAsync.when(
-          data: (insights) => _buildInsights(context, insights),
+          data: (insights) => _buildInsights(context, insights, isDesktop),
           loading: () => Column(
             children: [
               SizedBox(height: MediaQuery.of(context).padding.top),
@@ -38,100 +38,192 @@ class InsightsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildInsights(BuildContext context, InsightsData insights) {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          expandedHeight: 104,
-          floating: false,
-          pinned: false,
-          snap: false,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Padding(
-              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-              child: const PageHeader(title: 'Insights', showBackButton: false),
+  Widget _buildInsights(BuildContext context, InsightsData insights, bool isDesktop) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: isDesktop ? 900 : double.infinity),
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 104,
+              floating: false,
+              pinned: false,
+              snap: false,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Padding(
+                  padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                  child: const PageHeader(title: 'Insights', showBackButton: false),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: isDesktop ? 40 : 24),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  if (isDesktop) ..._buildDesktopLayout(insights) else ..._buildMobileLayout(insights),
+                ]),
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + (isDesktop ? 40 : 100)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildDesktopLayout(InsightsData insights) {
+    return [
+      Row(
+        children: [
+          Expanded(
+            child: _buildStatCard(
+              icon: Icons.local_fire_department_rounded,
+              title: 'Focus Streak',
+              value: '${insights.focusStreak}',
+              subtitle: insights.focusStreak == 1 ? 'day' : 'days',
+              gradient: LinearGradient(
+                colors: [Colors.orange.shade400, Colors.red.shade600],
+              ),
             ),
           ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              _buildStatCard(
-                icon: Icons.local_fire_department_rounded,
-                title: 'Focus Streak',
-                value: '${insights.focusStreak}',
-                subtitle: insights.focusStreak == 1 ? 'day' : 'days',
-                gradient: LinearGradient(
-                  colors: [Colors.orange.shade400, Colors.red.shade600],
-                ),
-              ),
-              const SizedBox(height: 16),
-              _buildStatCard(
-                icon: Icons.timer_outlined,
-                title: 'This Week',
-                value: '${insights.totalMinutesThisWeek}',
-                subtitle: 'minutes',
-                gradient: AppColors.primaryGradient,
-              ),
-              const SizedBox(height: 16),
-              _buildStatCard(
-                icon: Icons.star_rounded,
-                title: 'Average Rating',
-                value: insights.averageRating > 0 
-                    ? insights.averageRating.toStringAsFixed(1) 
-                    : '—',
-                subtitle: insights.averageRating > 0 ? 'out of 5' : 'no ratings yet',
-                gradient: LinearGradient(
-                  colors: [Colors.amber.shade400, Colors.orange.shade600],
-                ),
-              ),
-              const SizedBox(height: 32),
-              const Text(
-                'All Time',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSmallStatCard(
-                      icon: Icons.check_circle_outline_rounded,
-                      title: 'Completed',
-                      value: '${insights.completedFocuses}',
-                      gradient: LinearGradient(
-                        colors: [Colors.green.shade400, Colors.green.shade600],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildSmallStatCard(
-                      icon: Icons.play_circle_outline_rounded,
-                      title: 'Sessions',
-                      value: '${insights.totalSessions}',
-                      gradient: LinearGradient(
-                        colors: [Colors.purple.shade400, Colors.purple.shade600],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ]),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildStatCard(
+              icon: Icons.timer_outlined,
+              title: 'This Week',
+              value: '${insights.totalMinutesThisWeek}',
+              subtitle: 'minutes',
+              gradient: AppColors.primaryGradient,
+            ),
           ),
+        ],
+      ),
+      const SizedBox(height: 16),
+      Row(
+        children: [
+          Expanded(
+            child: _buildStatCard(
+              icon: Icons.star_rounded,
+              title: 'Average Rating',
+              value: insights.averageRating > 0 ? insights.averageRating.toStringAsFixed(1) : '—',
+              subtitle: insights.averageRating > 0 ? 'out of 5' : 'no ratings yet',
+              gradient: LinearGradient(
+                colors: [Colors.amber.shade400, Colors.orange.shade600],
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(child: Container()),
+        ],
+      ),
+      const SizedBox(height: 32),
+      const Text(
+        'All Time',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
-        SliverPadding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 100),
+      ),
+      const SizedBox(height: 16),
+      Row(
+        children: [
+          Expanded(
+            child: _buildSmallStatCard(
+              icon: Icons.check_circle_outline_rounded,
+              title: 'Completed',
+              value: '${insights.completedFocuses}',
+              gradient: LinearGradient(
+                colors: [Colors.green.shade400, Colors.green.shade600],
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildSmallStatCard(
+              icon: Icons.play_circle_outline_rounded,
+              title: 'Sessions',
+              value: '${insights.totalSessions}',
+              gradient: LinearGradient(
+                colors: [Colors.purple.shade400, Colors.purple.shade600],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  List<Widget> _buildMobileLayout(InsightsData insights) {
+    return [
+      _buildStatCard(
+        icon: Icons.local_fire_department_rounded,
+        title: 'Focus Streak',
+        value: '${insights.focusStreak}',
+        subtitle: insights.focusStreak == 1 ? 'day' : 'days',
+        gradient: LinearGradient(
+          colors: [Colors.orange.shade400, Colors.red.shade600],
         ),
-      ],
-    );
+      ),
+      const SizedBox(height: 16),
+      _buildStatCard(
+        icon: Icons.timer_outlined,
+        title: 'This Week',
+        value: '${insights.totalMinutesThisWeek}',
+        subtitle: 'minutes',
+        gradient: AppColors.primaryGradient,
+      ),
+      const SizedBox(height: 16),
+      _buildStatCard(
+        icon: Icons.star_rounded,
+        title: 'Average Rating',
+        value: insights.averageRating > 0 ? insights.averageRating.toStringAsFixed(1) : '—',
+        subtitle: insights.averageRating > 0 ? 'out of 5' : 'no ratings yet',
+        gradient: LinearGradient(
+          colors: [Colors.amber.shade400, Colors.orange.shade600],
+        ),
+      ),
+      const SizedBox(height: 32),
+      const Text(
+        'All Time',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+      const SizedBox(height: 16),
+      Row(
+        children: [
+          Expanded(
+            child: _buildSmallStatCard(
+              icon: Icons.check_circle_outline_rounded,
+              title: 'Completed',
+              value: '${insights.completedFocuses}',
+              gradient: LinearGradient(
+                colors: [Colors.green.shade400, Colors.green.shade600],
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildSmallStatCard(
+              icon: Icons.play_circle_outline_rounded,
+              title: 'Sessions',
+              value: '${insights.totalSessions}',
+              gradient: LinearGradient(
+                colors: [Colors.purple.shade400, Colors.purple.shade600],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ];
   }
 
   Widget _buildStatCard({

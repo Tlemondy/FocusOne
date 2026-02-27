@@ -17,6 +17,49 @@ class HomePage extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
     final userName = authState.value?.displayName ?? 'there';
     final dailyFocusAsync = ref.watch(dailyFocusProvider);
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
+
+    if (isDesktop) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: Container(
+          decoration: BoxDecoration(gradient: AppColors.backgroundGradient),
+          child: SafeArea(
+            child: FadeInAnimation(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(userName, ref, context),
+                        const SizedBox(height: 40),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 6,
+                              child: _buildTodaysFocus(context, ref, dailyFocusAsync),
+                            ),
+                            const SizedBox(width: 24),
+                            Expanded(
+                              flex: 4,
+                              child: _buildStreakCard(ref),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,

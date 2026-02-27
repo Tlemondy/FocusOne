@@ -7,6 +7,7 @@ import '../pages/history/history_page.dart';
 import '../pages/insights/insights_page.dart';
 import '../pages/friends/friends_page.dart';
 import '../providers/tab_provider.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 
 class TabsBase extends ConsumerWidget {
@@ -22,6 +23,90 @@ class TabsBase extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabIndex = ref.watch(tabsProvider);
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
+
+    if (isDesktop) {
+      return Scaffold(
+        body: Row(
+          children: [
+            Container(
+              width: 280,
+              decoration: BoxDecoration(
+                gradient: AppColors.backgroundGradient,
+                border: Border(
+                  right: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 40),
+                    ShaderMask(
+                      shaderCallback: (bounds) => AppColors.primaryGradient.createShader(bounds),
+                      child: const Text(
+                        'Focus One',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 60),
+                    _buildNavItem(Icons.center_focus_strong_rounded, 'Home', 1, tabIndex, ref),
+                    _buildNavItem(Icons.history_rounded, 'History', 0, tabIndex, ref),
+                    _buildNavItem(Icons.insights_rounded, 'Insights', 2, tabIndex, ref),
+                    _buildNavItem(Icons.people_outline_rounded, 'Friends', 3, tabIndex, ref),
+                    const Spacer(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                      child: GestureDetector(
+                        onTap: () => ref.read(authControllerProvider.notifier).signOut(),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.red.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.logout_rounded, color: Colors.red.shade400, size: 24),
+                              const SizedBox(width: 16),
+                              Text(
+                                'Logout',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.red.shade400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: IndexedStack(
+                index: tabIndex,
+                children: _pages,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       extendBody: true,
@@ -31,7 +116,6 @@ class TabsBase extends ConsumerWidget {
             index: tabIndex,
             children: _pages,
           ),
-
           Positioned(
             left: 16,
             right: 16,
@@ -44,6 +128,38 @@ class TabsBase extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String label, int index, int currentIndex, WidgetRef ref) {
+    final isSelected = index == currentIndex;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: GestureDetector(
+        onTap: () => ref.read(tabsProvider.notifier).setTab(index),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            gradient: isSelected ? AppColors.primaryGradient : null,
+            color: isSelected ? null : Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: Colors.white, size: 24),
+              const SizedBox(width: 16),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

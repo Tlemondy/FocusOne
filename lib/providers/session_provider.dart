@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/focus_session.dart';
 import '../services/session_service.dart';
-import '../services/firestore_service.dart';
 import 'auth_provider.dart';
 import 'focus_provider.dart';
 

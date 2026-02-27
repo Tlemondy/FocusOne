@@ -21,6 +21,7 @@ class HistoryPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final focusesAsync = ref.watch(completedFocusesProvider);
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -36,7 +37,7 @@ class HistoryPage extends ConsumerWidget {
                     Expanded(child: _buildEmptyState()),
                   ],
                 )
-              : _buildHistoryList(context, focuses),
+              : _buildHistoryList(context, focuses, isDesktop),
           loading: () => Column(
             children: [
               SizedBox(height: MediaQuery.of(context).padding.top),
@@ -56,40 +57,58 @@ class HistoryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHistoryList(BuildContext context, List<Map<String, dynamic>> focuses) {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          expandedHeight: 104,
-          floating: false,
-          pinned: false,
-          snap: false,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Padding(
-              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-              child: const PageHeader(title: 'History', showBackButton: false),
-            ),
-          ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: _buildFocusCard(context, focuses[index]),
+  Widget _buildHistoryList(BuildContext context, List<Map<String, dynamic>> focuses, bool isDesktop) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: isDesktop ? 900 : double.infinity),
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 104,
+              floating: false,
+              pinned: false,
+              snap: false,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Padding(
+                  padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                  child: const PageHeader(title: 'History', showBackButton: false),
+                ),
               ),
-              childCount: focuses.length,
             ),
-          ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: isDesktop ? 40 : 24),
+              sliver: isDesktop
+                  ? SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 2.5,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => _buildFocusCard(context, focuses[index]),
+                        childCount: focuses.length,
+                      ),
+                    )
+                  : SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildFocusCard(context, focuses[index]),
+                        ),
+                        childCount: focuses.length,
+                      ),
+                    ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + (isDesktop ? 40 : 100)),
+            ),
+          ],
         ),
-        SliverPadding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 100),
-        ),
-      ],
+      ),
     );
   }
 

@@ -39,6 +39,104 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       statusBarBrightness: Brightness.dark,
     ));
 
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
+
+    if (isDesktop) {
+      return Scaffold(
+        body: Container(
+          decoration: BoxDecoration(gradient: AppColors.backgroundGradient),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: Padding(
+                      padding: const EdgeInsets.all(60),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ShaderMask(
+                            shaderCallback: (bounds) => AppColors.primaryGradient.createShader(bounds),
+                            child: const Text(
+                              'Focus One',
+                              style: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: -1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Your Daily Focus Companion',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 5,
+                    child: Center(
+                      child: Container(
+                        constraints: const BoxConstraints(maxWidth: 440),
+                        padding: const EdgeInsets.all(48),
+                        margin: const EdgeInsets.all(40),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            width: 1,
+                          ),
+                        ),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const Text(
+                                'Create Account',
+                                style: TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Start your focus journey',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 40),
+                              _buildWebRegisterForm(),
+                              const SizedBox(height: 24),
+                              _buildSignInPrompt(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Container(
@@ -146,6 +244,64 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             color: AppColors.textSecondary,
             fontWeight: FontWeight.w400,
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWebRegisterForm() {
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState.isLoading;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        CustomTextField(
+          controller: _nameController,
+          hint: 'Full Name',
+          icon: Icons.person_outline_rounded,
+        ),
+        const SizedBox(height: 16),
+        CustomTextField(
+          controller: _emailController,
+          hint: 'Email',
+          icon: Icons.mail_outline_rounded,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: 16),
+        CustomTextField(
+          controller: _passwordController,
+          hint: 'Password',
+          icon: Icons.lock_outline_rounded,
+          obscureText: _obscurePassword,
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              color: AppColors.textSecondary,
+              size: 22,
+            ),
+            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+          ),
+        ),
+        const SizedBox(height: 16),
+        CustomTextField(
+          controller: _confirmPasswordController,
+          hint: 'Confirm Password',
+          icon: Icons.lock_outline_rounded,
+          obscureText: _obscureConfirmPassword,
+          suffixIcon: IconButton(
+            icon: Icon(
+              _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              color: AppColors.textSecondary,
+              size: 22,
+            ),
+            onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+          ),
+        ),
+        const SizedBox(height: 24),
+        GradientButton(
+          text: isLoading ? 'Creating Account...' : 'Create Account',
+          onTap: isLoading ? () {} : _handleSignUp,
         ),
       ],
     );
