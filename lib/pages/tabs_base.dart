@@ -33,122 +33,36 @@ class TabsBase extends ConsumerWidget {
 
     if (isDesktop) {
       return Scaffold(
-        body: Row(
-          children: [
-            Container(
-              width: 280,
-              decoration: BoxDecoration(
-                gradient: AppColors.backgroundGradient,
-                border: Border(
-                  right: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    width: 1,
+        body: Container(
+          decoration: BoxDecoration(gradient: AppColors.backgroundGradient),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+              child: Row(
+                children: [
+                  _buildDesktopRail(context, ref, effectiveTabIndex),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08),
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(28),
+                        child: showsRoutedChild
+                            ? child!
+                            : IndexedStack(index: tabIndex, children: _pages),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              child: SafeArea(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 40),
-                    ShaderMask(
-                      shaderCallback: (bounds) =>
-                          AppColors.primaryGradient.createShader(bounds),
-                      child: const Text(
-                        'Focus One',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 60),
-                    _buildNavItem(
-                      context,
-                      Icons.center_focus_strong_rounded,
-                      'Home',
-                      1,
-                      effectiveTabIndex,
-                      ref,
-                    ),
-                    _buildNavItem(
-                      context,
-                      Icons.history_rounded,
-                      'History',
-                      0,
-                      effectiveTabIndex,
-                      ref,
-                    ),
-                    _buildNavItem(
-                      context,
-                      Icons.insights_rounded,
-                      'Insights',
-                      2,
-                      effectiveTabIndex,
-                      ref,
-                    ),
-                    _buildNavItem(
-                      context,
-                      Icons.people_outline_rounded,
-                      'Friends',
-                      3,
-                      effectiveTabIndex,
-                      ref,
-                    ),
-                    const Spacer(),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 20,
-                      ),
-                      child: GestureDetector(
-                        onTap: () =>
-                            ref.read(authControllerProvider.notifier).signOut(),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.red.withValues(alpha: 0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.logout_rounded,
-                                color: Colors.red.shade400,
-                                size: 24,
-                              ),
-                              const SizedBox(width: 16),
-                              Text(
-                                'Logout',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.red.shade400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                ],
               ),
             ),
-            Expanded(
-              child: showsRoutedChild
-                  ? child!
-                  : IndexedStack(index: tabIndex, children: _pages),
-            ),
-          ],
+          ),
         ),
       );
     }
@@ -190,6 +104,87 @@ class TabsBase extends ConsumerWidget {
     }
   }
 
+  Widget _buildDesktopRail(
+    BuildContext context,
+    WidgetRef ref,
+    int currentIndex,
+  ) {
+    return SizedBox(
+      width: 236,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 18, 12, 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                'Focus One',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: -0.6,
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                'Stay on one thing.',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary.withValues(alpha: 0.68),
+                ),
+              ),
+            ),
+            const SizedBox(height: 26),
+            _buildNavItem(
+              context,
+              Icons.center_focus_strong_rounded,
+              'Home',
+              1,
+              currentIndex,
+              ref,
+            ),
+            _buildNavItem(
+              context,
+              Icons.history_rounded,
+              'History',
+              0,
+              currentIndex,
+              ref,
+            ),
+            _buildNavItem(
+              context,
+              Icons.insights_rounded,
+              'Insights',
+              2,
+              currentIndex,
+              ref,
+            ),
+            _buildNavItem(
+              context,
+              Icons.people_outline_rounded,
+              'Friends',
+              3,
+              currentIndex,
+              ref,
+            ),
+            const Spacer(),
+            _buildRailFooter(ref),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildNavItem(
     BuildContext context,
     IconData icon,
@@ -200,31 +195,113 @@ class TabsBase extends ConsumerWidget {
   ) {
     final isSelected = index == currentIndex;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.only(bottom: 6),
       child: GestureDetector(
         onTap: () => _handleTabSelection(context, ref, index),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
-            gradient: isSelected ? AppColors.primaryGradient : null,
-            color: isSelected ? null : Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(16),
+            color: isSelected
+                ? Colors.white.withValues(alpha: 0.12)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isSelected
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : Colors.transparent,
+            ),
           ),
           child: Row(
             children: [
-              Icon(icon, color: Colors.white, size: 24),
-              const SizedBox(width: 16),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: Colors.white,
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: Colors.white.withValues(alpha: isSelected ? 1 : 0.84),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: Colors.white.withValues(
+                      alpha: isSelected ? 1 : 0.82,
+                    ),
+                  ),
+                ),
+              ),
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 220),
+                opacity: isSelected ? 1 : 0,
+                child: Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildRailFooter(WidgetRef ref) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () => ref.read(authControllerProvider.notifier).signOut(),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.logout_rounded,
+                    color: AppColors.textSecondary,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Logout',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withValues(alpha: 0.82),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
