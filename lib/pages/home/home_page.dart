@@ -168,7 +168,7 @@ class HomePage extends ConsumerWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1280),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(40, 36, 40, 40),
+              padding: const EdgeInsets.fromLTRB(40, 32, 40, 40),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final useTwoColumns = constraints.maxWidth >= 900;
@@ -264,6 +264,10 @@ class HomePage extends ConsumerWidget {
                 runSpacing: 10,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
+                  _buildHeaderBadge(
+                    icon: Icons.waving_hand_rounded,
+                    label: 'Hello, $userName',
+                  ),
                   Text(
                     formattedDate,
                     style: TextStyle(
@@ -286,33 +290,24 @@ class HomePage extends ConsumerWidget {
                     ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                'Hello, $userName',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 14),
               ShaderMask(
                 shaderCallback: (bounds) =>
                     AppColors.primaryGradient.createShader(bounds),
                 child: const Text(
                   'One clear target for today.',
                   style: TextStyle(
-                    fontSize: 42,
+                    fontSize: 40,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
-                    letterSpacing: -1.4,
+                    letterSpacing: -1.1,
                     height: 1.05,
                   ),
                 ),
               ),
               const SizedBox(height: 12),
               SizedBox(
-                width: 620,
+                width: 720,
                 child: Text(
                   hasFocus
                       ? 'Keep the home screen centered on the one outcome that matters, then move straight into execution.'
