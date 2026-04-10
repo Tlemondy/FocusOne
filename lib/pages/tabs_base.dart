@@ -67,6 +67,10 @@ class TabsBase extends ConsumerWidget {
       );
     }
 
+    if (showsRoutedChild) {
+      return child!;
+    }
+
     return Scaffold(
       extendBody: true,
       body: Stack(

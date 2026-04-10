@@ -5,20 +5,24 @@ import '../../theme/app_colors.dart';
 import '../../theme/glass_container.dart';
 import '../../widgets/page_header.dart';
 
-final hasFriendsProvider = NotifierProvider<HasFriendsNotifier, bool>(HasFriendsNotifier.new);
-final searchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(SearchQueryNotifier.new);
+final hasFriendsProvider = NotifierProvider<HasFriendsNotifier, bool>(
+  HasFriendsNotifier.new,
+);
+final searchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(
+  SearchQueryNotifier.new,
+);
 
 class HasFriendsNotifier extends Notifier<bool> {
   @override
   bool build() => false;
-  
+
   void toggle() => state = !state;
 }
 
 class SearchQueryNotifier extends Notifier<String> {
   @override
   String build() => '';
-  
+
   void update(String query) => state = query;
 }
 
@@ -35,7 +39,9 @@ class FriendsPage extends ConsumerWidget {
       extendBodyBehindAppBar: true,
       body: Container(
         decoration: BoxDecoration(gradient: AppColors.backgroundGradient),
-        child: hasFriends ? _buildFriendsList(context, ref, isDesktop) : _buildEmptyState(context, isDesktop),
+        child: hasFriends
+            ? _buildFriendsList(context, ref, isDesktop)
+            : _buildEmptyState(context, isDesktop),
       ),
     );
   }
@@ -46,12 +52,18 @@ class FriendsPage extends ConsumerWidget {
         SizedBox(height: MediaQuery.of(context).padding.top),
         Row(
           children: [
-            const Expanded(child: PageHeader(title: 'Friends', showBackButton: false)),
+            const Expanded(
+              child: PageHeader(title: 'Friends', showBackButton: false),
+            ),
             Padding(
               padding: EdgeInsets.only(right: isDesktop ? 40 : 24, top: 24),
               child: IconButton(
                 onPressed: () => _scanQRCode(context),
-                icon: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 28),
+                icon: const Icon(
+                  Icons.qr_code_scanner_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
             ),
           ],
@@ -59,7 +71,9 @@ class FriendsPage extends ConsumerWidget {
         const SizedBox(height: 80),
         Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: isDesktop ? 900 : double.infinity),
+            constraints: BoxConstraints(
+              maxWidth: isDesktop ? 900 : double.infinity,
+            ),
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: isDesktop ? 40 : 24),
               child: GlassContainer(
@@ -98,10 +112,16 @@ class FriendsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildFriendsList(BuildContext context, WidgetRef ref, bool isDesktop) {
+  Widget _buildFriendsList(
+    BuildContext context,
+    WidgetRef ref,
+    bool isDesktop,
+  ) {
     return Center(
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: isDesktop ? 900 : double.infinity),
+        constraints: BoxConstraints(
+          maxWidth: isDesktop ? 900 : double.infinity,
+        ),
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
@@ -114,15 +134,29 @@ class FriendsPage extends ConsumerWidget {
               automaticallyImplyLeading: false,
               flexibleSpace: FlexibleSpaceBar(
                 background: Padding(
-                  padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top,
+                  ),
                   child: Row(
                     children: [
-                      const Expanded(child: PageHeader(title: 'Friends', showBackButton: false)),
+                      const Expanded(
+                        child: PageHeader(
+                          title: 'Friends',
+                          showBackButton: false,
+                        ),
+                      ),
                       Padding(
-                        padding: EdgeInsets.only(right: isDesktop ? 40 : 24, top: 24),
+                        padding: EdgeInsets.only(
+                          right: isDesktop ? 40 : 24,
+                          top: 24,
+                        ),
                         child: IconButton(
                           onPressed: () => _scanQRCode(context),
-                          icon: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 28),
+                          icon: const Icon(
+                            Icons.qr_code_scanner_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          ),
                         ),
                       ),
                     ],
@@ -140,7 +174,11 @@ class FriendsPage extends ConsumerWidget {
               ),
             ),
             SliverPadding(
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + (isDesktop ? 40 : 100)),
+              padding: EdgeInsets.only(
+                bottom:
+                    MediaQuery.of(context).padding.bottom +
+                    (isDesktop ? 40 : 100),
+              ),
             ),
           ],
         ),
@@ -167,7 +205,8 @@ class FriendsPage extends ConsumerWidget {
         ),
       ),
       child: TextField(
-        onChanged: (value) => ref.read(searchQueryProvider.notifier).update(value),
+        onChanged: (value) =>
+            ref.read(searchQueryProvider.notifier).update(value),
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           hintText: 'Search friends...',
@@ -182,9 +221,9 @@ class FriendsPage extends ConsumerWidget {
   void _scanQRCode(BuildContext context) async {
     final result = await context.push('/qr-scanner');
     if (result != null && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Scanned: $result')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Scanned: $result')));
     }
   }
 }

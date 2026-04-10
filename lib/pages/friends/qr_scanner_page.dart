@@ -44,7 +44,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 children: [
                   IconButton(
                     onPressed: () => context.pop(),
-                    icon: const Icon(Icons.close_rounded, color: Colors.white, size: 32),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
                   ),
                   const Spacer(),
                   const Text(
