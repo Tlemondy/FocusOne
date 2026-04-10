@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../pages/home/home_page.dart';
 import '../pages/history/history_page.dart';
@@ -11,7 +12,9 @@ import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 
 class TabsBase extends ConsumerWidget {
-  const TabsBase({super.key});
+  final Widget? child;
+
+  const TabsBase({super.key, this.child});
 
   static final List<Widget> _pages = const [
     HistoryPage(),
@@ -23,6 +26,9 @@ class TabsBase extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tabIndex = ref.watch(tabsProvider);
+    final location = GoRouterState.of(context).uri.toString();
+    final showsRoutedChild = child != null && location != '/';
+    final effectiveTabIndex = _tabIndexForLocation(location, tabIndex);
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     if (isDesktop) {
@@ -45,7 +51,8 @@ class TabsBase extends ConsumerWidget {
                   children: [
                     const SizedBox(height: 40),
                     ShaderMask(
-                      shaderCallback: (bounds) => AppColors.primaryGradient.createShader(bounds),
+                      shaderCallback: (bounds) =>
+                          AppColors.primaryGradient.createShader(bounds),
                       child: const Text(
                         'Focus One',
                         style: TextStyle(
@@ -57,17 +64,52 @@ class TabsBase extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 60),
-                    _buildNavItem(Icons.center_focus_strong_rounded, 'Home', 1, tabIndex, ref),
-                    _buildNavItem(Icons.history_rounded, 'History', 0, tabIndex, ref),
-                    _buildNavItem(Icons.insights_rounded, 'Insights', 2, tabIndex, ref),
-                    _buildNavItem(Icons.people_outline_rounded, 'Friends', 3, tabIndex, ref),
+                    _buildNavItem(
+                      context,
+                      Icons.center_focus_strong_rounded,
+                      'Home',
+                      1,
+                      effectiveTabIndex,
+                      ref,
+                    ),
+                    _buildNavItem(
+                      context,
+                      Icons.history_rounded,
+                      'History',
+                      0,
+                      effectiveTabIndex,
+                      ref,
+                    ),
+                    _buildNavItem(
+                      context,
+                      Icons.insights_rounded,
+                      'Insights',
+                      2,
+                      effectiveTabIndex,
+                      ref,
+                    ),
+                    _buildNavItem(
+                      context,
+                      Icons.people_outline_rounded,
+                      'Friends',
+                      3,
+                      effectiveTabIndex,
+                      ref,
+                    ),
                     const Spacer(),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 20,
+                      ),
                       child: GestureDetector(
-                        onTap: () => ref.read(authControllerProvider.notifier).signOut(),
+                        onTap: () =>
+                            ref.read(authControllerProvider.notifier).signOut(),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.red.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(16),
@@ -78,7 +120,11 @@ class TabsBase extends ConsumerWidget {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.logout_rounded, color: Colors.red.shade400, size: 24),
+                              Icon(
+                                Icons.logout_rounded,
+                                color: Colors.red.shade400,
+                                size: 24,
+                              ),
                               const SizedBox(width: 16),
                               Text(
                                 'Logout',
@@ -98,10 +144,9 @@ class TabsBase extends ConsumerWidget {
               ),
             ),
             Expanded(
-              child: IndexedStack(
-                index: tabIndex,
-                children: _pages,
-              ),
+              child: showsRoutedChild
+                  ? child!
+                  : IndexedStack(index: tabIndex, children: _pages),
             ),
           ],
         ),
@@ -112,18 +157,15 @@ class TabsBase extends ConsumerWidget {
       extendBody: true,
       body: Stack(
         children: [
-          IndexedStack(
-            index: tabIndex,
-            children: _pages,
-          ),
+          IndexedStack(index: tabIndex, children: _pages),
           Positioned(
             left: 16,
             right: 16,
             bottom: 16,
             child: SafeArea(
               child: _GlassTabBar(
-                currentIndex: tabIndex,
-                onTabSelected: (i) => ref.read(tabsProvider.notifier).setTab(i),
+                currentIndex: effectiveTabIndex,
+                onTabSelected: (i) => _handleTabSelection(context, ref, i),
               ),
             ),
           ),
@@ -132,12 +174,35 @@ class TabsBase extends ConsumerWidget {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, int index, int currentIndex, WidgetRef ref) {
+  int _tabIndexForLocation(String location, int fallbackIndex) {
+    if (location.startsWith('/focus-detail') ||
+        location.startsWith('/note-viewer')) {
+      return 0;
+    }
+
+    return fallbackIndex;
+  }
+
+  void _handleTabSelection(BuildContext context, WidgetRef ref, int index) {
+    ref.read(tabsProvider.notifier).setTab(index);
+    if (GoRouterState.of(context).uri.toString() != '/') {
+      context.go('/');
+    }
+  }
+
+  Widget _buildNavItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    int index,
+    int currentIndex,
+    WidgetRef ref,
+  ) {
     final isSelected = index == currentIndex;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: GestureDetector(
-        onTap: () => ref.read(tabsProvider.notifier).setTab(index),
+        onTap: () => _handleTabSelection(context, ref, index),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
@@ -169,10 +234,7 @@ class _GlassTabBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTabSelected;
 
-  const _GlassTabBar({
-    required this.currentIndex,
-    required this.onTabSelected,
-  });
+  const _GlassTabBar({required this.currentIndex, required this.onTabSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +248,7 @@ class _GlassTabBar extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final tabWidth = constraints.maxWidth / 4;
-        
+
         return ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: BackdropFilter(
@@ -278,7 +340,9 @@ class _GlassTabItem extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isSelected ? AppColors.primary : Colors.white.withValues(alpha: 0.5),
+              color: isSelected
+                  ? AppColors.primary
+                  : Colors.white.withValues(alpha: 0.5),
               size: 26,
             ),
             const SizedBox(height: 4),
@@ -287,7 +351,9 @@ class _GlassTabItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? AppColors.primary : Colors.white.withValues(alpha: 0.5),
+                color: isSelected
+                    ? AppColors.primary
+                    : Colors.white.withValues(alpha: 0.5),
               ),
             ),
           ],
