@@ -3,15 +3,15 @@ import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/focus_session.dart';
 import '../services/session_service.dart';
-import '../services/firestore_service.dart';
 import 'auth_provider.dart';
 import 'focus_provider.dart';
 
 final sessionServiceProvider = Provider((ref) => SessionService());
 
-final activeSessionProvider = NotifierProvider<ActiveSessionNotifier, ActiveSessionState?>(
-  ActiveSessionNotifier.new,
-);
+final activeSessionProvider =
+    NotifierProvider<ActiveSessionNotifier, ActiveSessionState?>(
+      ActiveSessionNotifier.new,
+    );
 
 class ActiveSessionState {
   final String focusDateId;
@@ -41,7 +41,8 @@ class ActiveSessionState {
     return ActiveSessionState(
       focusDateId: focusDateId ?? this.focusDateId,
       startedAt: startedAt ?? this.startedAt,
-      selectedDurationMinutes: selectedDurationMinutes ?? this.selectedDurationMinutes,
+      selectedDurationMinutes:
+          selectedDurationMinutes ?? this.selectedDurationMinutes,
       remainingSeconds: remainingSeconds ?? this.remainingSeconds,
       isRunning: isRunning ?? this.isRunning,
       sessionNote: sessionNote ?? this.sessionNote,
@@ -110,9 +111,9 @@ class ActiveSessionNotifier extends Notifier<ActiveSessionState?> {
 
     final endedAt = DateTime.now();
     final actualDuration = endedAt.difference(state!.startedAt).inMinutes;
-    
+
     log('SESSION: Ending session - Duration: $actualDuration minutes');
-    
+
     // Temporarily allow any duration for testing
     // if (actualDuration < 1) {
     //   log('SESSION: Session too short, discarding');
@@ -131,7 +132,9 @@ class ActiveSessionNotifier extends Notifier<ActiveSessionState?> {
       note: note,
     );
 
-    log('SESSION: Saving session - ID: ${session.id}, DateID: ${session.focusDateId}');
+    log(
+      'SESSION: Saving session - ID: ${session.id}, DateID: ${session.focusDateId}',
+    );
 
     try {
       final authState = await ref.read(authStateProvider.future);
@@ -140,12 +143,15 @@ class ActiveSessionNotifier extends Notifier<ActiveSessionState?> {
         final service = ref.read(sessionServiceProvider);
         await service.saveSession(authState.uid, session);
         log('SESSION: Session saved successfully');
-        
+
         // Mark focus as completed
         final firestoreService = ref.read(firestoreServiceProvider);
-        await firestoreService.markFocusCompleted(authState.uid, state!.focusDateId);
+        await firestoreService.markFocusCompleted(
+          authState.uid,
+          state!.focusDateId,
+        );
         log('SESSION: Focus marked as completed');
-        
+
         // Clear focus from home screen UI
         ref.read(dailyFocusProvider.notifier).clearFocusFromUI();
         log('SESSION: Focus cleared from home screen');

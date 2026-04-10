@@ -8,13 +8,18 @@ class FirestoreService {
 
   Future<void> saveDailyFocus(String userId, DailyFocus focus) async {
     try {
-      await _db.collection('users').doc(userId).collection('focuses').doc(focus.id).set({
-        'title': focus.title,
-        'reason': focus.reason,
-        'date': Timestamp.fromDate(focus.date),
-        'createdAt': FieldValue.serverTimestamp(),
-        'status': 'active',
-      });
+      await _db
+          .collection('users')
+          .doc(userId)
+          .collection('focuses')
+          .doc(focus.id)
+          .set({
+            'title': focus.title,
+            'reason': focus.reason,
+            'date': Timestamp.fromDate(focus.date),
+            'createdAt': FieldValue.serverTimestamp(),
+            'status': 'active',
+          });
     } catch (e) {
       log('FIRESTORE: Error saving focus: $e');
       rethrow;
@@ -31,12 +36,12 @@ class FirestoreService {
           .orderBy('createdAt', descending: true)
           .limit(1)
           .get();
-      
+
       if (snapshot.docs.isEmpty) return null;
-      
+
       final doc = snapshot.docs.first;
       final data = doc.data();
-      
+
       return DailyFocus(
         id: doc.id,
         title: data['title'],
@@ -51,10 +56,15 @@ class FirestoreService {
 
   Future<void> markFocusCompleted(String userId, String focusId) async {
     try {
-      await _db.collection('users').doc(userId).collection('focuses').doc(focusId).update({
-        'status': 'completed',
-        'completedAt': FieldValue.serverTimestamp(),
-      });
+      await _db
+          .collection('users')
+          .doc(userId)
+          .collection('focuses')
+          .doc(focusId)
+          .update({
+            'status': 'completed',
+            'completedAt': FieldValue.serverTimestamp(),
+          });
     } catch (e) {
       log('FIRESTORE: Error marking focus completed: $e');
       rethrow;
@@ -63,9 +73,40 @@ class FirestoreService {
 
   Future<void> deleteDailyFocus(String userId, String focusId) async {
     try {
-      await _db.collection('users').doc(userId).collection('focuses').doc(focusId).delete();
+      await _db
+          .collection('users')
+          .doc(userId)
+          .collection('focuses')
+          .doc(focusId)
+          .delete();
     } catch (e) {
       log('FIRESTORE: Error deleting focus: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteCompletedFocus(String userId, String focusId) async {
+    try {
+      final sessionsRef = _db
+          .collection('users')
+          .doc(userId)
+          .collection('focuses')
+          .doc(focusId)
+          .collection('sessions');
+
+      final sessionsSnapshot = await sessionsRef.get();
+      for (final doc in sessionsSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      await _db
+          .collection('users')
+          .doc(userId)
+          .collection('focuses')
+          .doc(focusId)
+          .delete();
+    } catch (e) {
+      log('FIRESTORE: Error deleting completed focus: $e');
       rethrow;
     }
   }

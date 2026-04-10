@@ -19,7 +19,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/login',
     redirect: (context, state) {
       final isLoggedIn = authState.value != null;
-      final isLoggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+      final isLoggingIn =
+          state.matchedLocation == '/login' ||
+          state.matchedLocation == '/register';
 
       if (!isLoggedIn && !isLoggingIn) {
         return '/login';
@@ -56,13 +58,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           },
         ),
       ),
-      GoRoute(
-        path: '/',
-        name: 'home',
-        builder: (context, state) => const TabsBase(),
+      ShellRoute(
+        builder: (context, state, child) => TabsBase(child: child),
         routes: [
           GoRoute(
-            path: 'focus-detail/:dateId',
+            path: '/',
+            name: 'home',
+            builder: (context, state) => const SizedBox.shrink(),
+          ),
+          GoRoute(
+            path: '/focus-detail/:dateId',
             name: 'focus-detail',
             pageBuilder: (context, state) {
               final extra = state.extra as Map<String, dynamic>;
@@ -74,32 +79,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   reason: extra['reason'],
                   date: extra['date'],
                 ),
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                      return FadeTransition(opacity: animation, child: child);
+                    },
               );
             },
           ),
           GoRoute(
-            path: 'focus-session',
-            name: 'focus-session',
-            pageBuilder: (context, state) {
-              final extra = state.extra as Map<String, dynamic>;
-              return CustomTransitionPage(
-                key: state.pageKey,
-                child: FocusSessionPage(
-                  focusTitle: extra['title'],
-                  focusReason: extra['reason'],
-                  focusDateId: extra['dateId'],
-                ),
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-              );
-            },
-          ),
-          GoRoute(
-            path: 'note-viewer',
+            path: '/note-viewer',
             name: 'note-viewer',
             pageBuilder: (context, state) {
               final extra = state.extra as Map<String, dynamic>;
@@ -110,61 +98,70 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   sessionId: extra['sessionId'],
                   focusDateId: extra['focusDateId'],
                 ),
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                      return FadeTransition(opacity: animation, child: child);
+                    },
               );
             },
           ),
-          GoRoute(
-            path: 'insights',
-            name: 'insights',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: const TabsBase(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-            ),
-          ),
-          GoRoute(
-            path: 'settings',
-            name: 'settings',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: const SettingsPage(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                const begin = Offset(1.0, 0.0);
-                const end = Offset.zero;
-                const curve = Curves.easeInOut;
-                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                return SlideTransition(
-                  position: animation.drive(tween),
-                  child: child,
-                );
-              },
-            ),
-          ),
-          GoRoute(
-            path: 'qr-scanner',
-            name: 'qr-scanner',
-            pageBuilder: (context, state) => CustomTransitionPage(
-              key: state.pageKey,
-              child: const QRScannerPage(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-            ),
-          ),
         ],
+      ),
+      GoRoute(
+        path: '/focus-session',
+        name: 'focus-session',
+        pageBuilder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: FocusSessionPage(
+              focusTitle: extra['title'],
+              focusReason: extra['reason'],
+              focusDateId: extra['dateId'],
+            ),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+          );
+        },
+      ),
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const SettingsPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            var tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+        ),
+      ),
+      GoRoute(
+        path: '/qr-scanner',
+        name: 'qr-scanner',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const QRScannerPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(
-        child: Text(
-          state.error.toString(),
-          textAlign: TextAlign.center,
-        ),
+        child: Text(state.error.toString(), textAlign: TextAlign.center),
       ),
     ),
   );
