@@ -169,43 +169,74 @@ class HomePage extends ConsumerWidget {
             constraints: const BoxConstraints(maxWidth: 1280),
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(40, 36, 40, 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildWebHeader(
-                    context,
-                    userName,
-                    formattedDate,
-                    hasFocus,
-                    activeSession,
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final useTwoColumns = constraints.maxWidth >= 900;
+
+                  return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        flex: 7,
-                        child: _buildWebFocusPanel(
-                          context,
-                          ref,
-                          focus,
-                          activeSession,
-                        ),
+                      _buildWebHeader(
+                        context,
+                        userName,
+                        formattedDate,
+                        hasFocus,
+                        activeSession,
                       ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        flex: 5,
-                        child: _buildWebSummaryPanel(
+                      const SizedBox(height: 32),
+                      if (useTwoColumns)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 7,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildWebFocusPanel(
+                                    context,
+                                    ref,
+                                    focus,
+                                    activeSession,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  _buildWebPerformanceStrip(
+                                    context,
+                                    focus,
+                                    insightsAsync,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 24),
+                            Expanded(
+                              flex: 5,
+                              child: _buildWebSummaryPanel(
+                                context,
+                                insightsAsync,
+                                activeSession,
+                              ),
+                            ),
+                          ],
+                        )
+                      else ...[
+                        _buildWebFocusPanel(context, ref, focus, activeSession),
+                        const SizedBox(height: 20),
+                        _buildWebSummaryPanel(
                           context,
                           insightsAsync,
                           activeSession,
                         ),
-                      ),
+                        const SizedBox(height: 20),
+                        _buildWebPerformanceStrip(
+                          context,
+                          focus,
+                          insightsAsync,
+                        ),
+                      ],
                     ],
-                  ),
-                  const SizedBox(height: 20),
-                  _buildWebPerformanceStrip(context, focus, insightsAsync),
-                ],
+                  );
+                },
               ),
             ),
           ),
@@ -613,25 +644,46 @@ class HomePage extends ConsumerWidget {
             ),
           ];
 
-          return Row(
-            children: [
-              for (int index = 0; index < cards.length; index++) ...[
-                Expanded(
-                  child: _buildPerformanceCard(
-                    title: cards[index].$1,
-                    value: cards[index].$2,
-                    subtitle: cards[index].$3,
-                  ),
-                ),
-                if (index < cards.length - 1)
-                  Container(
-                    width: 1,
-                    height: 96,
-                    margin: const EdgeInsets.symmetric(horizontal: 18),
-                    color: Colors.white.withValues(alpha: 0.08),
-                  ),
-              ],
-            ],
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final useRowLayout = constraints.maxWidth >= 520;
+
+              if (!useRowLayout) {
+                return Column(
+                  children: [
+                    for (int index = 0; index < cards.length; index++) ...[
+                      _buildPerformanceCard(
+                        title: cards[index].$1,
+                        value: cards[index].$2,
+                        subtitle: cards[index].$3,
+                      ),
+                      if (index < cards.length - 1) const SizedBox(height: 14),
+                    ],
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  for (int index = 0; index < cards.length; index++) ...[
+                    Expanded(
+                      child: _buildPerformanceCard(
+                        title: cards[index].$1,
+                        value: cards[index].$2,
+                        subtitle: cards[index].$3,
+                      ),
+                    ),
+                    if (index < cards.length - 1)
+                      Container(
+                        width: 1,
+                        height: 96,
+                        margin: const EdgeInsets.symmetric(horizontal: 18),
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
+                  ],
+                ],
+              );
+            },
           );
         },
         loading: () => const SizedBox(
