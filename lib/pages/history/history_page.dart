@@ -142,7 +142,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           ),
           Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1360),
+              constraints: const BoxConstraints(maxWidth: 1280),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(40, 32, 40, 40),
                 child: Column(
@@ -242,11 +242,11 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 child: const Text(
                   'Find the exact focus fast.',
                   style: TextStyle(
-                    fontSize: 42,
+                    fontSize: 40,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
-                    letterSpacing: -1.4,
-                    height: 1.04,
+                    letterSpacing: -1.1,
+                    height: 1.05,
                   ),
                 ),
               ),
