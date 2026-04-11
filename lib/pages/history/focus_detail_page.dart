@@ -7,7 +7,6 @@ import '../../theme/glass_container.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/focus_provider.dart';
 import '../../providers/session_provider.dart';
-import '../../providers/tab_provider.dart';
 import '../../models/focus_session.dart';
 import 'history_page.dart';
 
@@ -1016,7 +1015,6 @@ class _FocusDetailPageState extends ConsumerState<FocusDetailPage> {
 
       ref.invalidate(completedFocusesProvider);
       ref.invalidate(focusSessionsProvider(widget.dateId));
-      ref.read(tabsProvider.notifier).setTab(0);
 
       if (!context.mounted) return;
       messenger.showSnackBar(
@@ -1025,7 +1023,7 @@ class _FocusDetailPageState extends ConsumerState<FocusDetailPage> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      context.go('/');
+      context.go('/history');
     } catch (e) {
       if (!mounted) return;
       setState(() => _isDeleting = false);
