@@ -4,6 +4,10 @@ import 'package:flutter/foundation.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  void _log(String message) {
+    debugPrint('PROFILE PHOTO AUTH SERVICE: $message');
+  }
+
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   User? get currentUser => _auth.currentUser;
@@ -60,17 +64,19 @@ class AuthService {
     }
   }
 
-  Future<void> updatePhotoURL(String photoURL) async {
+  Future<void> updatePhotoURL(String? photoURL) async {
     try {
       final user = _auth.currentUser;
       if (user != null) {
+        _log('updatePhotoURL start userId=${user.uid} photoUrl=$photoURL');
         await user.updatePhotoURL(photoURL);
-        await user.reload();
-        debugPrint('AUTH SERVICE: Photo URL updated');
+        _log('updatePhotoURL complete userId=${user.uid}');
+      } else {
+        _log('updatePhotoURL skipped no current user');
       }
     } catch (e, stackTrace) {
-      debugPrint('AUTH SERVICE: Update photo URL error: $e');
-      debugPrint('Stack trace: $stackTrace');
+      _log('updatePhotoURL error error=$e');
+      debugPrintStack(stackTrace: stackTrace);
       rethrow;
     }
   }
