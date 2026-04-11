@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +11,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/focus_provider.dart';
 import '../../providers/insights_provider.dart';
 import '../../providers/session_provider.dart';
+import '../../providers/shared_session_provider.dart';
+import '../../models/shared_session.dart';
 import 'components/set_focus_modal.dart';
 
 class HomePage extends ConsumerWidget {
@@ -21,6 +25,7 @@ class HomePage extends ConsumerWidget {
     final dailyFocusAsync = ref.watch(dailyFocusProvider);
     final insightsAsync = ref.watch(insightsProvider);
     final activeSession = ref.watch(activeSessionProvider);
+    final activeSharedSessions = ref.watch(activeSharedSessionsProvider);
     final isDesktop = MediaQuery.of(context).size.width >= 900;
     final isWebDesktop = kIsWeb && isDesktop;
 
@@ -38,6 +43,7 @@ class HomePage extends ConsumerWidget {
                 dailyFocusAsync,
                 insightsAsync,
                 activeSession,
+                activeSharedSessions,
               ),
             ),
           ),
@@ -64,6 +70,15 @@ class HomePage extends ConsumerWidget {
                         _buildHeader(userName, ref, context),
                         const SizedBox(height: 20),
                         _buildTodaysFocus(context, ref, dailyFocusAsync),
+                        if (activeSession != null ||
+                            activeSharedSessions.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          _buildLiveSessionSection(
+                            context,
+                            activeSession: activeSession,
+                            activeSharedSessions: activeSharedSessions,
+                          ),
+                        ],
                         const SizedBox(height: 16),
                         _buildStreakCard(ref),
                         const Spacer(),
@@ -133,6 +148,7 @@ class HomePage extends ConsumerWidget {
     AsyncValue<DailyFocus?> focusAsync,
     AsyncValue<InsightsData> insightsAsync,
     ActiveSessionState? activeSession,
+    List<SharedStudySession> activeSharedSessions,
   ) {
     final focus = focusAsync.value;
     final localizations = MaterialLocalizations.of(context);
@@ -182,6 +198,7 @@ class HomePage extends ConsumerWidget {
                         formattedDate,
                         hasFocus,
                         activeSession,
+                        activeSharedSessions,
                       ),
                       const SizedBox(height: 32),
                       if (useTwoColumns)
@@ -198,6 +215,7 @@ class HomePage extends ConsumerWidget {
                                     ref,
                                     focus,
                                     activeSession,
+                                    activeSharedSessions,
                                   ),
                                   const SizedBox(height: 20),
                                   _buildWebPerformanceStrip(
@@ -215,17 +233,25 @@ class HomePage extends ConsumerWidget {
                                 context,
                                 insightsAsync,
                                 activeSession,
+                                activeSharedSessions,
                               ),
                             ),
                           ],
                         )
                       else ...[
-                        _buildWebFocusPanel(context, ref, focus, activeSession),
+                        _buildWebFocusPanel(
+                          context,
+                          ref,
+                          focus,
+                          activeSession,
+                          activeSharedSessions,
+                        ),
                         const SizedBox(height: 20),
                         _buildWebSummaryPanel(
                           context,
                           insightsAsync,
                           activeSession,
+                          activeSharedSessions,
                         ),
                         const SizedBox(height: 20),
                         _buildWebPerformanceStrip(
@@ -251,6 +277,7 @@ class HomePage extends ConsumerWidget {
     String formattedDate,
     bool hasFocus,
     ActiveSessionState? activeSession,
+    List<SharedStudySession> activeSharedSessions,
   ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -287,6 +314,12 @@ class HomePage extends ConsumerWidget {
                       icon: Icons.play_circle_fill_rounded,
                       label:
                           '${_formatMinutes(activeSession.remainingSeconds ~/ 60)} left',
+                    ),
+                  if (activeSharedSessions.isNotEmpty)
+                    _buildHeaderBadge(
+                      icon: Icons.groups_rounded,
+                      label:
+                          '${activeSharedSessions.length} live ${activeSharedSessions.length == 1 ? 'room' : 'rooms'}',
                     ),
                 ],
               ),
@@ -349,9 +382,11 @@ class HomePage extends ConsumerWidget {
     WidgetRef ref,
     DailyFocus? focus,
     ActiveSessionState? activeSession,
+    List<SharedStudySession> activeSharedSessions,
   ) {
     final hasFocus = focus != null;
     final bool hasActiveSession = activeSession != null;
+    final bool hasSharedSessions = activeSharedSessions.isNotEmpty;
 
     return GlassContainer(
       padding: const EdgeInsets.all(32),
@@ -417,8 +452,13 @@ class HomePage extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 28),
-          if (hasActiveSession) ...[
-            _buildSessionBanner(activeSession),
+          if (hasActiveSession || hasSharedSessions) ...[
+            _buildLiveSessionSection(
+              context,
+              activeSession: activeSession,
+              activeSharedSessions: activeSharedSessions,
+              compact: true,
+            ),
             const SizedBox(height: 20),
           ],
           if (hasFocus &&
@@ -446,11 +486,11 @@ class HomePage extends ConsumerWidget {
                 label: hasFocus ? 'Set for today' : 'Ready when you are',
               ),
               _buildWebTag(
-                icon: hasActiveSession
+                icon: hasActiveSession || hasSharedSessions
                     ? Icons.play_circle_fill_rounded
                     : Icons.timelapse_rounded,
-                label: hasActiveSession
-                    ? 'Session in progress'
+                label: hasActiveSession || hasSharedSessions
+                    ? 'Live session available'
                     : 'No active session',
               ),
             ],
@@ -498,6 +538,7 @@ class HomePage extends ConsumerWidget {
     BuildContext context,
     AsyncValue<InsightsData> insightsAsync,
     ActiveSessionState? activeSession,
+    List<SharedStudySession> activeSharedSessions,
   ) {
     return GlassContainer(
       padding: const EdgeInsets.all(28),
@@ -518,7 +559,7 @@ class HomePage extends ConsumerWidget {
                   ),
                 ),
               ),
-              if (activeSession != null)
+              if (activeSession != null || activeSharedSessions.isNotEmpty)
                 Text(
                   'Live',
                   style: TextStyle(
@@ -531,7 +572,7 @@ class HomePage extends ConsumerWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            activeSession != null
+            activeSession != null || activeSharedSessions.isNotEmpty
                 ? 'You already have work in motion. The rest of the page stays secondary.'
                 : 'A compact view of consistency, volume, and session quality.',
             style: TextStyle(
@@ -759,56 +800,183 @@ class HomePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSessionBanner(ActiveSessionState session) {
+  Widget _buildLiveSessionSection(
+    BuildContext context, {
+    required ActiveSessionState? activeSession,
+    required List<SharedStudySession> activeSharedSessions,
+    bool compact = false,
+  }) {
+    final visibleSharedSessions = activeSharedSessions
+        .take(compact ? 1 : 2)
+        .toList();
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(compact ? 18 : 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primary.withValues(alpha: 0.18),
-            AppColors.secondary.withValues(alpha: 0.18),
+            AppColors.primary.withValues(alpha: 0.16),
+            AppColors.secondary.withValues(alpha: 0.12),
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.22)),
+        borderRadius: BorderRadius.circular(compact ? 22 : 24),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(Icons.play_arrow_rounded, color: Colors.white),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Session in progress',
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.bolt_rounded, color: Colors.white),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Live now',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 4),
+              ),
+              if (activeSession != null || visibleSharedSessions.isNotEmpty)
                 Text(
-                  '${_formatMinutes(session.remainingSeconds ~/ 60)} remaining from ${session.selectedDurationMinutes}m',
+                  'Resume',
                   style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary.withValues(alpha: 0.88),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary.withValues(alpha: 0.9),
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
+          const SizedBox(height: 14),
+          if (activeSession != null) ...[
+            _buildSoloLiveSessionTile(context, activeSession),
+            if (visibleSharedSessions.isNotEmpty) const SizedBox(height: 10),
+          ],
+          for (int i = 0; i < visibleSharedSessions.length; i++) ...[
+            _buildSharedLiveSessionTile(context, visibleSharedSessions[i]),
+            if (i < visibleSharedSessions.length - 1)
+              const SizedBox(height: 10),
+          ],
+          if (!compact &&
+              activeSharedSessions.length > visibleSharedSessions.length) ...[
+            const SizedBox(height: 12),
+            Text(
+              '+${activeSharedSessions.length - visibleSharedSessions.length} more live rooms in Friends',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary.withValues(alpha: 0.86),
+              ),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildSoloLiveSessionTile(
+    BuildContext context,
+    ActiveSessionState session,
+  ) {
+    return _buildLiveTile(
+      context,
+      icon: Icons.play_arrow_rounded,
+      title: 'Solo focus session',
+      subtitle:
+          '${_formatMinutes(session.remainingSeconds ~/ 60)} remaining from ${session.selectedDurationMinutes}m',
+      onTap: () => context.push(
+        '/focus-session',
+        extra: {
+          'title': 'Focus Session',
+          'reason': null,
+          'dateId': session.focusDateId,
+        },
+      ),
+    );
+  }
+
+  Widget _buildSharedLiveSessionTile(
+    BuildContext context,
+    SharedStudySession session,
+  ) {
+    final participantCount = session.participants.length;
+    return _SharedHomeTile(
+      session: session,
+      participantCount: participantCount,
+    );
+  }
+
+  Widget _buildLiveTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary.withValues(alpha: 0.88),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_rounded,
+              color: AppColors.textSecondary.withValues(alpha: 0.82),
+              size: 18,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1468,6 +1636,117 @@ class HomePage extends ConsumerWidget {
       ),
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _SharedHomeTile extends StatefulWidget {
+  const _SharedHomeTile({
+    required this.session,
+    required this.participantCount,
+  });
+
+  final SharedStudySession session;
+  final int participantCount;
+
+  @override
+  State<_SharedHomeTile> createState() => _SharedHomeTileState();
+}
+
+class _SharedHomeTileState extends State<_SharedHomeTile> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final remainingSeconds = widget.session.remainingSecondsAt(DateTime.now());
+    final minutes = remainingSeconds ~/ 60;
+    final subtitle =
+        '${minutes.toString()} min left • ${widget.participantCount} ${widget.participantCount == 1 ? 'person' : 'people'}';
+
+    return InkWell(
+      onTap: () {
+        context.push(
+          '/focus-session',
+          extra: {
+            'title': widget.session.focusTitle,
+            'reason': widget.session.focusReason,
+            'dateId': widget.session.hostFocusDateId,
+            'sharedSessionId': widget.session.id,
+          },
+        );
+      },
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.groups_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.session.focusTitle,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary.withValues(alpha: 0.88),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_rounded,
+              color: AppColors.textSecondary.withValues(alpha: 0.82),
+              size: 18,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
