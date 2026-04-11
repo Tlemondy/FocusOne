@@ -143,6 +143,15 @@ class ActiveSessionNotifier extends Notifier<ActiveSessionState?> {
         final service = ref.read(sessionServiceProvider);
         await service.saveSession(authState.uid, session);
         log('SESSION: Session saved successfully');
+        await ref
+            .read(authFriendServiceProvider)
+            .recordSessionStats(
+              userId: authState.uid,
+              durationMinutes: session.durationMinutes,
+              status: session.status,
+              rating: session.rating,
+            );
+        log('SESSION: Public stats updated');
 
         // Mark focus as completed
         final firestoreService = ref.read(firestoreServiceProvider);

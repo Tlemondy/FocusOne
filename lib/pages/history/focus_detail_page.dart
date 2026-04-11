@@ -1016,7 +1016,6 @@ class _FocusDetailPageState extends ConsumerState<FocusDetailPage> {
 
       ref.invalidate(completedFocusesProvider);
       ref.invalidate(focusSessionsProvider(widget.dateId));
-      ref.read(tabsProvider.notifier).setTab(0);
 
       if (!context.mounted) return;
       messenger.showSnackBar(
@@ -1025,7 +1024,7 @@ class _FocusDetailPageState extends ConsumerState<FocusDetailPage> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      context.go('/');
+      context.go('/history');
     } catch (e) {
       if (!mounted) return;
       setState(() => _isDeleting = false);

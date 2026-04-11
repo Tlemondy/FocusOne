@@ -7,6 +7,10 @@ class FocusSession {
   final String status;
   final int? rating;
   final String? note;
+  final bool isShared;
+  final String? sharedSessionId;
+  final List<String> participantIds;
+  final List<String> participantNames;
 
   FocusSession({
     required this.id,
@@ -17,6 +21,10 @@ class FocusSession {
     required this.status,
     this.rating,
     this.note,
+    this.isShared = false,
+    this.sharedSessionId,
+    this.participantIds = const [],
+    this.participantNames = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -28,6 +36,10 @@ class FocusSession {
       'status': status,
       'rating': rating,
       'note': note,
+      'isShared': isShared,
+      'sharedSessionId': sharedSessionId,
+      'participantIds': participantIds,
+      'participantNames': participantNames,
     };
   }
 
@@ -41,6 +53,14 @@ class FocusSession {
       status: map['status'],
       rating: map['rating'],
       note: map['note'],
+      isShared: map['isShared'] as bool? ?? false,
+      sharedSessionId: map['sharedSessionId'] as String?,
+      participantIds: (map['participantIds'] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .toList(),
+      participantNames: (map['participantNames'] as List<dynamic>? ?? const [])
+          .whereType<String>()
+          .toList(),
     );
   }
 }
